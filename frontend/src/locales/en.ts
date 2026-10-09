@@ -151,13 +151,6 @@ export default {
     conflict: "Duplicate of “{action}”",
     hint: "Click a field, then press the key combination you want to use.",
   },
-  break: {
-    shortLabel: "Eye break",
-    longLabel: "Long break",
-    hint: "Look at something about 20 feet away and relax your eyes.",
-    skip: "Skip break",
-    breathe: "Breathe and rest your eyes",
-  },
   notice: {
     title: "Break starting",
     sub: "Wrap up your task - your screen will rest soon.",

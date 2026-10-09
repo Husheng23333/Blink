@@ -1,6 +1,6 @@
 // Package breakengine 包含 Blink 的核心计时状态机：
 // 在专注（focus）→ 休息前提醒（pre-break）→ 短休息/长休息之间循环，
-// 用户空闲时自动暂停，系统休眠后恢复，并驱动全屏休息遮罩窗口。
+// 用户空闲时自动暂停，系统休眠后恢复，并驱动休息图标窗口。
 package breakengine
 
 import (
@@ -70,7 +70,7 @@ type Engine struct {
 	// 计算实际持续时长并累加到统计。setPhase 每次切换都会刷新它。
 	phaseStart time.Time
 
-	// app 是 Wails 应用实例，在 Start 时取得；遮罩/通知窗口的句柄
+	// app 是 Wails 应用实例，在 Start 时取得；休息图标/通知窗口的句柄
 	// 不放在这里——它们由 windowLoop 独占（见 windows.go 的 windowState）。
 	app *application.App
 
@@ -158,9 +158,9 @@ func (e *Engine) Stop() {
 	e.started = false
 	// 在关闭 stopCh 之前先入队隐藏命令，这样 windowLoop 有机会
 	// 在退出前处理它们（参见 windowLoop），否则 windowLoop 可能在
-	// 隐藏命令执行前就返回，导致遮罩窗口残留在屏幕上。
+	// 隐藏命令执行前就返回，导致休息图标窗口残留在屏幕上。
 	e.hideNotice()
-	e.hideOverlays()
+	e.hideBreakIcon()
 	close(e.stopCh)
 	e.mu.Unlock()
 }
@@ -204,7 +204,7 @@ func (e *Engine) state() State {
 // 内容与上次完全相同时跳过投递。暂停、空闲这类冻结状态下每秒算出的
 // 快照一模一样，逐秒投递只是让 Go 侧多做一次 JSON 序列化、让事件总线
 // 多广播一轮、让每个 webview 多赋一组相同的值。所有下游都不依赖这些
-// 重复事件：托盘自带变更检测，提醒窗口走本地时钟，遮罩与设置页把值
+// 重复事件：托盘自带变更检测，提醒窗口走本地时钟，休息图标与设置页把值
 // 直接交给 Vue 的响应式系统（值未变即不重渲染）。
 func (e *Engine) emit() {
 	st := e.state()
@@ -310,7 +310,7 @@ func (e *Engine) idleLoop(stopCh chan struct{}) {
 					e.phase = PhaseIdle
 					log.Printf("blink/breakengine: 空闲阈值达到（%s），专注计时器保持满值", threshold)
 					e.hideNotice()
-					e.hideOverlays()
+					e.hideBreakIcon()
 					e.emit()
 				}
 			} else {

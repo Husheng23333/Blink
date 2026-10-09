@@ -88,7 +88,7 @@ func TestTickSleepGapResetsFocusPeriod(t *testing.T) {
 }
 
 // TestTickSleepGapDuringBreakResetsFocus 是一个回归测试：休眠后过期的
-// 休息必须被重置回专注周期，而不是让用户卡在过期的休息遮罩上；同时
+// 休息必须被重置回专注周期，而不是让用户卡在过期的休息图标上；同时
 // 一次没经历完的休息不应被"结算"——不播放结束音（无副作用可测）、
 // 不递增短休息计数器。
 func TestTickSleepGapDuringBreakResetsFocus(t *testing.T) {

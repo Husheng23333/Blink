@@ -35,7 +35,7 @@ func TestIdleHoldsFocusTimer(t *testing.T) {
 func TestSendCmdNonBlockingDrop(t *testing.T) {
 	e := newTestEngine()
 	e.cmdCh = make(chan windowCmd, 1)
-	e.cmdCh <- cmdShowOverlays // 填满通道
+	e.cmdCh <- cmdShowBreakIcon // 填满通道
 
 	done := make(chan struct{})
 	go func() {
@@ -51,8 +51,8 @@ func TestSendCmdNonBlockingDrop(t *testing.T) {
 	if len(e.cmdCh) != 1 {
 		t.Fatalf("被丢弃的命令被入队了：len=%d，应为 1", len(e.cmdCh))
 	}
-	if got := <-e.cmdCh; got != cmdShowOverlays {
-		t.Errorf("更早的命令被替换了：得到 %v，应为 cmdShowOverlays", got)
+	if got := <-e.cmdCh; got != cmdShowBreakIcon {
+		t.Errorf("更早的命令被替换了：得到 %v，应为 cmdShowBreakIcon", got)
 	}
 }
 
@@ -61,14 +61,14 @@ func TestSendCmdNonBlockingDrop(t *testing.T) {
 func TestSendCmdLaterSupersedesEarlier(t *testing.T) {
 	e := newTestEngine()
 	e.cmdCh = make(chan windowCmd, 2)
-	e.sendCmd(cmdShowOverlays)
-	e.sendCmd(cmdHideOverlays)
+	e.sendCmd(cmdShowBreakIcon)
+	e.sendCmd(cmdHideBreakIcon)
 
 	var got []windowCmd
 	for len(e.cmdCh) > 0 {
 		got = append(got, <-e.cmdCh)
 	}
-	if len(got) != 2 || got[0] != cmdShowOverlays || got[1] != cmdHideOverlays {
+	if len(got) != 2 || got[0] != cmdShowBreakIcon || got[1] != cmdHideBreakIcon {
 		t.Errorf("命令顺序错误：%v，应为 [show hide]", got)
 	}
 }
@@ -76,8 +76,8 @@ func TestSendCmdLaterSupersedesEarlier(t *testing.T) {
 // ---- Stop 关闭顺序测试 ----
 
 // TestStopEnqueuesHidesBeforeClosingStopCh 固定关闭顺序不变式：
-// Stop 在关闭 stopCh 之前通过入队命令来隐藏遮罩/通知，这样 windowLoop
-// 会排空它们（而非立即返回），永远不会让遮罩残留在屏幕上。
+// Stop 在关闭 stopCh 之前通过入队命令来隐藏图标/通知，这样 windowLoop
+// 会排空它们（而非立即返回），永远不会让休息图标残留在屏幕上。
 func TestStopEnqueuesHidesBeforeClosingStopCh(t *testing.T) {
 	e := newTestEngine()
 	e.started = true
@@ -99,23 +99,23 @@ func TestStopEnqueuesHidesBeforeClosingStopCh(t *testing.T) {
 	for len(e.cmdCh) > 0 {
 		cmds = append(cmds, <-e.cmdCh)
 	}
-	hasNotice, hasOverlays := false, false
+	hasNotice, hasBreakIcon := false, false
 	for i, c := range cmds {
 		if c == cmdHideNotice {
 			hasNotice = true
 			if i != 0 {
-				t.Errorf("cmdHideNotice 在索引 %d，应为 0（在 overlays 之前入队）", i)
+				t.Errorf("cmdHideNotice 在索引 %d，应为 0（在 break icon 之前入队）", i)
 			}
 		}
-		if c == cmdHideOverlays {
-			hasOverlays = true
+		if c == cmdHideBreakIcon {
+			hasBreakIcon = true
 		}
 	}
 	if !hasNotice {
 		t.Error("Stop 未在关闭 stopCh 前入队 cmdHideNotice")
 	}
-	if !hasOverlays {
-		t.Error("Stop 未在关闭 stopCh 前入队 cmdHideOverlays")
+	if !hasBreakIcon {
+		t.Error("Stop 未在关闭 stopCh 前入队 cmdHideBreakIcon")
 	}
 }
 

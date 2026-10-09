@@ -4,43 +4,49 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// overlayOptions 构建全屏休息遮罩窗口的配置项。
-// 使用不透明的深色背景（非半透明），以避免 macOS Tahoe 在窗口边缘
-// 产生的明亮玻璃边框。窗口层级设为 ScreenSaver（最高），确保覆盖
-// Dock 和菜单栏。
-func overlayOptions(s *application.Screen) application.WebviewWindowOptions {
+// breakIconName 是休息图标窗口的名称。
+const breakIconName = "pm-break-icon"
+
+// breakIconOptions 构建休息图标窗口的配置项：主显示器右下角一个透明的小笑脸。
+// 窗口不抢焦点、点击穿透（IgnoreMouseEvents），不遮挡用户的操作。
+// 窗口层级设为 Floating，高于普通窗口但不压过 Dock 与菜单栏。
+func breakIconOptions(a *application.App) application.WebviewWindowOptions {
+	const (
+		iconSize   = 96
+		iconMargin = 24
+		// 图标在水平方向整体左移一点，避免贴得太近右侧边缘。
+		iconMarginX = iconMargin + 20
+	)
+	x, y := 0, 0
+	if primary := a.Screen.GetPrimary(); primary != nil {
+		wa := primary.WorkArea
+		x = wa.X + wa.Width - iconSize - iconMarginX
+		y = wa.Y + wa.Height - iconSize - iconMargin
+	}
 	return application.WebviewWindowOptions{
-		Name:           overlayName(s.ID),
-		Title:          "",
-		Frameless:      true,
-		AlwaysOnTop:    true,
-		DisableResize:  true,
-		Hidden:         true,
-		URL:            "/#break",
-		Width:          s.Bounds.Width,
-		Height:         s.Bounds.Height,
-		X:              s.Bounds.X,
-		Y:              s.Bounds.Y,
-		InitialPosition: application.WindowXY,
-		// 实色深色背景：与 CSS 渐变匹配，避免 webview 绘制前的颜色闪烁。
-		// 不透明（非半透明）以避免 macOS Tahoe 在窗口边缘的明亮玻璃边框。
-		BackgroundType:   application.BackgroundTypeSolid,
-		BackgroundColour:  application.NewRGB(24, 26, 29),
+		Name:              breakIconName,
+		Title:             "",
+		Frameless:         true,
+		AlwaysOnTop:       true,
+		DisableResize:     true,
+		IgnoreMouseEvents: true,
+		URL:               "/#break",
+		Width:             iconSize,
+		Height:            iconSize,
+		X:                 x,
+		Y:                 y,
+		InitialPosition:   application.WindowXY,
+		BackgroundType:    application.BackgroundTypeTransparent,
+		BackgroundColour:  application.NewRGBA(0, 0, 0, 0),
 		Mac: application.MacWindow{
-			// ScreenSaver 是最高的 NSWindow 层级（1000），高于 PopUpMenu（101）、
-			// Status（25，Dock 和菜单栏所在层级）及其它所有层级。这保证了
-			// 遮罩始终覆盖 Dock 和菜单栏。
-			WindowLevel:        application.MacWindowLevelScreenSaver,
+			WindowLevel:        application.MacWindowLevelFloating,
 			CollectionBehavior: application.MacWindowCollectionBehaviorCanJoinAllSpaces | application.MacWindowCollectionBehaviorStationary,
-			TitleBar:            application.MacTitleBar{Hide: true, AppearsTransparent: true, FullSizeContent: true},
-			DisableShadow:       true,
+			TitleBar:           application.MacTitleBar{Hide: true, AppearsTransparent: true, FullSizeContent: true},
+			DisableShadow:      true,
 		},
-		// Windows：全屏遮罩是临时浮层，不应占用任务栏席位（HiddenOnTaskbar →
-		// WS_EX_TOOLWINDOW），也不要 OS 的圆角/阴影（DisableFramelessWindowDecorations），
-		// 否则铺满整屏时会露出亮边或黑色描边。覆盖任务栏靠 AlwaysOnTop（WS_EX_TOPMOST）
-		// 配合整屏 Bounds 实现。
+		// Windows：与休息前提醒一致，不占任务栏，去掉 OS 阴影/圆角（阴影交给 CSS）。
 		Windows: application.WindowsWindow{
-			HiddenOnTaskbar:                 true,
+			HiddenOnTaskbar:                   true,
 			DisableFramelessWindowDecorations: true,
 		},
 		CloseButtonState:      application.ButtonHidden,
@@ -63,20 +69,20 @@ func noticeOptions(a *application.App) application.WebviewWindowOptions {
 		y = primary.WorkArea.Y + 80
 	}
 	return application.WebviewWindowOptions{
-		Name:            "pm-notice",
-		Title:           "",
-		Frameless:       true,
-		AlwaysOnTop:     true,
-		DisableResize:   true,
-		Hidden:          true,
-		URL:             "/#notice",
-		Width:           noticeWidth,
-		Height:          noticeHeight,
-		X:               x,
-		Y:               y,
-		InitialPosition: application.WindowXY,
+		Name:             "pm-notice",
+		Title:            "",
+		Frameless:        true,
+		AlwaysOnTop:      true,
+		DisableResize:    true,
+		Hidden:           true,
+		URL:              "/#notice",
+		Width:            noticeWidth,
+		Height:           noticeHeight,
+		X:                x,
+		Y:                y,
+		InitialPosition:  application.WindowXY,
 		BackgroundType:   application.BackgroundTypeTransparent,
-		BackgroundColour:  application.NewRGBA(0, 0, 0, 0),
+		BackgroundColour: application.NewRGBA(0, 0, 0, 0),
 		Mac: application.MacWindow{
 			Backdrop:    application.MacBackdropTranslucent,
 			WindowLevel: application.MacWindowLevelFloating,
@@ -87,7 +93,7 @@ func noticeOptions(a *application.App) application.WebviewWindowOptions {
 		// 否则会加 WS_EX_TRANSPARENT 导致点击穿透。HiddenOnTaskbar 让提醒不出现在
 		// 任务栏；DisableFramelessWindowDecorations 去掉 OS 阴影/圆角，圆角交给 CSS。
 		Windows: application.WindowsWindow{
-			HiddenOnTaskbar:                 true,
+			HiddenOnTaskbar:                   true,
 			DisableFramelessWindowDecorations: true,
 		},
 		CloseButtonState:      application.ButtonHidden,

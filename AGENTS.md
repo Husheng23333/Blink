@@ -24,22 +24,22 @@ wails3 task darwin:dmg                  # distributable DMG
 
 - Entry: `main.go` → loads `config.Settings` → creates `breakengine.Engine` → registers Wails `BreakService` → builds tray menu and global shortcuts.
 - `breakservice.go` is a thin Wails Service facade; every method delegates to `engine.*`. Save flows run on the main thread, so shortcut rebinds dispatch to a goroutine.
-- `internal/breakengine/` is the core state machine: `loop()` ticks every second and emits `blink:tick` events; `idleLoop()` polls `platform.IdleSeconds()` every 5s; `windowLoop()` is the sole owner of overlay/notice window lifecycle.
+- `internal/breakengine/` is the core state machine: `loop()` ticks every second and emits `blink:tick` events; `idleLoop()` polls `platform.IdleSeconds()` every 5s; `windowLoop()` is the sole owner of break-icon/notice window lifecycle.
 - `internal/platform/` uses CGo with `//go:build darwin` constraints; non-darwin stubs degrade gracefully.
-- Frontend is a Vue 3 SPA with hash routing: `#settings` → `Settings.vue`, `#break` → `BreakOverlay.vue`, `#notice` → `PreBreakNotice.vue`. Go opens windows at these URLs.
+- Frontend is a Vue 3 SPA with hash routing: `#settings` → `Settings.vue`, `#break` → `BreakIcon.vue`, `#notice` → `PreBreakNotice.vue`. Go opens windows at these URLs.
 - `frontend/bindings/` is **generated** by Wails — do not hand-edit; regenerate after Go service changes.
 
 ## Concurrency discipline (critical)
 
 - **Never call Wails window APIs (`Show`, `Hide`, `Focus`, `NewWithOptions`) from the main thread** — they block on `InvokeSync` and deadlock. Dispatch to a goroutine first.
 - The engine mutex must never be held while calling Wails window APIs.
-- The state machine only sends commands to `windowLoop` via the buffered channel `cmdCh`; overlay windows are closed (destroyed), not hidden, when breaks end.
+- The state machine only sends commands to `windowLoop` via the buffered channel `cmdCh`; the break icon window is closed (destroyed), not hidden, when breaks end.
 - `shortcuts.go` rebinding is serialized by `rebindMu`; safe from any goroutine.
 
 ## Risk controls
 
 - Settings persist to `~/Library/Application Support/Blink/settings.json`; running the app writes real user state — never run against a fake config without noting it.
-- Break overlays are full-screen at `MacWindowLevelScreenSaver` (cover Dock and menu bar).
+- The break icon is a small click-through window (bottom-right of the primary display, `MacWindowLevelFloating`); it must never take focus or block clicks.
 - No commits that switch the package manager away from pnpm or rewrite `pnpm-lock.yaml` without approval.
 
 ## Traps

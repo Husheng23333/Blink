@@ -112,7 +112,7 @@ func TestPreBreakStillFiresBeforeExpiry(t *testing.T) {
 //
 // 暂停（以及其它任何冻结态）下每秒的快照完全相同，但 emit 仍无条件
 // 投递：Go 侧每秒做一次 JSON 序列化并广播给每个 webview，前端再把
-// 一组一模一样的值赋给响应式对象。下游（托盘、遮罩、提醒窗口）都有
+// 一组一模一样的值赋给响应式对象。下游（托盘、休息图标、提醒窗口）都有
 // 各自的本地时钟或变更检测，不靠这些重复事件续命。
 func TestEmitSkippedWhenStateUnchanged(t *testing.T) {
 	e := newTestEngine()

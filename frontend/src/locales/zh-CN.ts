@@ -151,13 +151,6 @@ export default {
     conflict: "与“{action}”重复",
     hint: "点击上方右侧按钮，然后直接按下想使用的组合键。",
   },
-  break: {
-    shortLabel: "眼睛休息",
-    longLabel: "长休息",
-    hint: "看向约 6 米外的地方，让眼睛放松一下。",
-    skip: "跳过休息",
-    breathe: "深呼吸，放松眼睛",
-  },
   notice: {
     title: "即将开始休息",
     sub: "整理一下手头的工作，屏幕即将进入休息。",

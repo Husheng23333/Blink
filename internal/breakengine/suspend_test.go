@@ -246,7 +246,7 @@ func TestAutoSuspendHiddenByDisabledSetting(t *testing.T) {
 }
 
 // TestAutoResumeInPreBreakRestoresNotice 验证预提醒阶段被自动暂停、
-// 恢复后提醒窗口重新显示（避免用户在无预告下迎来休息遮罩）。
+// 恢复后提醒窗口重新显示（避免用户在无预告下迎来休息图标）。
 // 窗口命令经 cmdCh 入队；测试中 cmdCh 为 nil，sendCmd 走 default
 // 分支静默丢弃，此处断言恢复后的阶段与倒计时仍正确。
 func TestAutoResumeInPreBreakRestoresNotice(t *testing.T) {

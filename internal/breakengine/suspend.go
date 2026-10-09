@@ -38,7 +38,7 @@ func (e *Engine) autoSuspend(cause string) {
 	// 会议/媒体播放期间不应弹出休息提醒打扰用户：隐藏提醒窗口。
 	// （专注阶段本来就没有窗口，调用是空操作；预提醒阶段则撤下提醒。）
 	e.hideNotice()
-	e.hideOverlays()
+	e.hideBreakIcon()
 	e.emit()
 }
 
@@ -52,7 +52,7 @@ func (e *Engine) autoResume() {
 	e.phaseEnd = time.Now().Add(e.pausedRemaining)
 	e.pausedRemaining = 0
 	// 若暂停发生在休息前提醒阶段，恢复时把提醒窗口重新显示出来：
-	// 否则用户会在毫无预告的情况下直接迎来休息遮罩。
+	// 否则用户会在毫无预告的情况下直接迎来休息图标。
 	if e.phase == PhasePreBreak {
 		e.showNotice()
 	}

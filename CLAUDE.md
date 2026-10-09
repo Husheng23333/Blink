@@ -39,7 +39,7 @@ PhaseFocusing → PhasePreBreak (heads-up) → PhaseShortBreak / PhaseLongBreak 
 ```
 - `loop()` ticks every second, advances the phase when timers expire, and emits `blink:tick` events (a `State` struct) to the frontend.
 - `idleLoop()` polls `platform.IdleSeconds()` (CGo → CGEventSource) every 5s. When idle exceeds the threshold, the phase becomes `PhaseIdle` (focus timer held at full); activity resets to `PhaseFocusing`.
-- A separate 1s poll (`externalSuspendLoop`) runs `checkExternalSuspend()`: when a meeting (mic input active) or media playback (audio output active) is detected, the countdown is frozen with `autoPaused` (edge-triggered, so a manual Resume is not immediately re-paused); the timer resumes automatically once the condition clears. Auto-pause skips breaks/idle phases, hides the notice/overlay while active, and re-shows the notice if the pre-break phase resumes. `Start()` resets the detection flags so a restart during an active meeting/media re-triggers the pause.
+- A separate 1s poll (`externalSuspendLoop`) runs `checkExternalSuspend()`: when a meeting (mic input active) or media playback (audio output active) is detected, the countdown is frozen with `autoPaused` (edge-triggered, so a manual Resume is not immediately re-paused); the timer resumes automatically once the condition clears. Auto-pause skips breaks/idle phases, hides the notice/break icon while active, and re-shows the notice if the pre-break phase resumes. `Start()` resets the detection flags so a restart during an active meeting/media re-triggers the pause.
 - System sleep is detected by a >5s gap between ticks; the focus period resets rather than firing a stale break.
 - **Window ops are funneled through a dedicated goroutine** (`windowLoop`) via a buffered channel (`cmdCh`). The engine mutex is never held while calling Wails window APIs (which marshal to the main thread internally — holding the mutex across that would deadlock against binding calls).
 
@@ -58,7 +58,7 @@ Non-darwin stubs (`*_other.go`) degrade gracefully: `IdleSeconds` returns 0, `Pl
 Wails window APIs (`Show`, `Hide`, `Focus`, `NewWithOptions`) internally call `InvokeSync`, which dispatches to the main thread and blocks. If called **from** the main thread (e.g., a tray click handler or a Wails binding call), this deadlocks. The codebase consistently handles this:
 - Tray click handlers, menu callbacks, and window event listeners dispatch work to a **goroutine** before touching windows.
 - `showPreferences()` creates the window on first open (via `NewWithOptions`, which shows itself) but only calls `Show()`/`Focus()` on the **existing-window** path (safe because that path is only reached from goroutine callers).
-- The break engine's `windowLoop` goroutine is the sole owner of overlay/notice window lifecycle — the state machine only sends commands via the channel.
+- The break engine's `windowLoop` goroutine is the sole owner of break-icon/notice window lifecycle — the state machine only sends commands via the channel.
 
 ### Menu bar / tray (`tray.go`)
 
@@ -77,7 +77,7 @@ A Vue 3 SPA that uses **hash-based view switching** — the Go side opens window
 | Hash | Component | Purpose |
 |------|-----------|---------|
 | (default) | `Settings.vue` | Full settings panel (time presets, sliders, shortcuts, about) |
-| `#break` | `BreakOverlay.vue` | Full-screen dark overlay with countdown during breaks |
+| `#break` | `BreakIcon.vue` | Small smiley in the bottom-right corner of the primary display; blinks three times at break start |
 | `#notice` | `PreBreakNotice.vue` | Glassmorphism heads-up card before a break starts |
 
 **State flow:** The Go engine emits `blink:tick` events → Wails runtime delivers them to the frontend → components read `state.phase` to decide visibility and `state.remainingSec` / `state.totalSec` for the countdown. User actions (skip, postpone, start break) call back to Go through Wails bindings generated from `BreakService`.
@@ -92,6 +92,6 @@ A Vue 3 SPA that uses **hash-based view switching** — the Go side opens window
 
 - **Settings save flow:** Frontend calls `BreakService.SaveSettings(settings)` → Go persists JSON → applies to engine → goroutine rebinds shortcuts and tray menu labels.
 - **Onboarding gate:** `settings.Onboarded` is `false` by default. `ServiceStartup` opens the settings window without starting the engine. `CompleteOnboarding()` sets `Onboarded = true`, saves, and calls `engine.Start()`.
-- **Multi-monitor breaks:** `ensureOverlays()` creates one full-screen `WebviewWindow` per display (at `MacWindowLevelScreenSaver` to cover Dock and menu bar). Windows are reused when the display configuration hasn't changed; recreated on display connect/disconnect. When a break ends the overlays are **closed (destroyed), not hidden** — keeping the WKWebView alive would leave its WebKit renderer process resident in memory. The next break recreates them.
+- **Break icon:** `ensureBreakIcon()` creates one small transparent, frameless, click-through `WebviewWindow` at the bottom-right of the primary display's work area (`breakIconOptions` in `window_options.go`). It is created visible so the blink animation starts while the window is on screen. When a break ends the icon is **closed (destroyed), not hidden** — keeping the WKWebView alive would leave its WebKit renderer process resident in memory. The next break recreates it. The icon never takes focus or activates the app; skip/postpone are done via shortcuts or the tray.
 - **Pause vs Idle:** Pause is user-initiated, freezes the countdown in-place with `e.paused = true` (phase unchanged). Idle is auto-detected, sets phase to `PhaseIdle` and resets to a fresh focus period on resume.
 - **`withDefaults()` pattern:** `config.Settings.withDefaults()` fills zero-value fields from `Default()` so adding new fields to the struct doesn't break existing saved files.

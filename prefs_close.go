@@ -86,8 +86,8 @@ func finishCloseAsk() bool {
 // hidePrefsWindow 隐藏设置窗口，让应用继续在通知区域运行。
 //
 // 隐藏而非销毁：设置窗口是单例（prefsWindowName），保活可以让下次打开
-// 免去重新加载 webview 的开销，也保住前端已加载的状态。这与休息遮罩的
-// 处理相反——遮罩是全屏 webview，常驻内存代价高，所以那边选择销毁重建。
+// 免去重新加载 webview 的开销，也保住前端已加载的状态。这与休息图标的
+// 处理相反——图标只在休息期间存在，每次休息都重建，不需要常驻内存。
 //
 // 线程：Hide 内部是 InvokeSync，只能从非主线程调用。
 func hidePrefsWindow() {

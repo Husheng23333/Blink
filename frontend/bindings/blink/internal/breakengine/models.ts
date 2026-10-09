@@ -22,12 +22,12 @@ export enum Phase {
     PhasePreBreak = "prebreak",
 
     /**
-     * PhaseShortBreak：常规短休息遮罩正在显示。
+     * PhaseShortBreak：常规短休息图标正在显示。
      */
     PhaseShortBreak = "shortbreak",
 
     /**
-     * PhaseLongBreak：偶尔的较长休息遮罩正在显示。
+     * PhaseLongBreak：偶尔的较长休息图标正在显示。
      */
     PhaseLongBreak = "longbreak",
 

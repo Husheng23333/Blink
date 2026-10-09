@@ -34,7 +34,7 @@ Blink automates it. It lives in your menu bar, counts quietly, and gently remind
 | 🧭 **First-run onboarding** | Setup screen on first launch — no surprise pop-ups before you're ready |
 | ⏱️ **Live menu-bar countdown** | See exactly how long until your next break at a glance |
 | 🔄 **Focus → Pre-break → Break** cycle | Frequent short breaks + occasional longer ones, natural rhythm |
-| 🖥️ **Full-screen break overlay** | Covers all displays (multi-monitor aware), large countdown + chime |
+| 😊 **Corner smiley** | A small smiley appears in the bottom-right of the primary display during breaks; it blinks three times and never blocks your work |
 | 🔔 **Pre-break notice** | Heads-up before screen dims so you can wrap up |
 | 😴 **Idle-aware** | Pauses when you step away, resumes on return; survives system sleep |
 | ⌨️ **Global keyboard shortcuts** | Start / skip / postpone / preferences without touching the mouse |
@@ -43,13 +43,13 @@ Blink automates it. It lives in your menu bar, counts quietly, and gently remind
 
 ## Screenshots
 
-### Full-Screen Break Countdown
+### Corner Smiley
 
 <p align="center">
   <img src="docs/images/休息全屏倒计时.png" width="640" alt="Full-screen break countdown" />
 </p>
 
-Immersive dark full-screen overlay with a centered countdown, eye-care tip, and skip button. A gentle chime plays when the break ends.
+A small smiley in the bottom-right corner of the primary display. It blinks three times at the start of a break and disappears when the break ends. It takes no focus and does not block the mouse; use the shortcut or tray menu to skip.
 
 ### Pre-Break Notice
 
@@ -135,7 +135,7 @@ wails3 task darwin:dmg          # -> bin/Blink-<version>-<arch>.dmg
 │   └── platform/           # CGo: macOS idle time + NSSound chime
 │
 └── frontend/src/
-    ├── views/              # Settings / BreakOverlay / PreBreakNotice
+    ├── views/              # Settings / BreakIcon / PreBreakNotice
     ├── components/         # Glass-panel component library
     └── locales/            # EN / ZH language packs
 ```

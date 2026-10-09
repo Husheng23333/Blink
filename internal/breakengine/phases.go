@@ -55,7 +55,7 @@ func (e *Engine) setPhase(p Phase, dur time.Duration) {
 	e.pausedAccum = 0
 }
 
-// startFocus 开始一个新的专注周期，隐藏通知和遮罩窗口。
+// startFocus 开始一个新的专注周期，隐藏通知和休息图标窗口。
 func (e *Engine) startFocus() {
 	// 如果当前仍在专注阶段（被 Reset/PostponeBreak/休眠等提前打断），
 	// 先记录已专注的时长，否则这部分时间会丢失。
@@ -64,7 +64,7 @@ func (e *Engine) startFocus() {
 	}
 	e.setPhase(PhaseFocusing, e.focusDur())
 	e.hideNotice()
-	e.hideOverlays()
+	e.hideBreakIcon()
 	e.emit()
 }
 
@@ -87,7 +87,7 @@ func (e *Engine) startPreBreak() {
 	e.emit()
 }
 
-// startBreak 开始一次休息（短休息或长休息），显示全屏遮罩。
+// startBreak 开始一次休息（短休息或长休息），显示右下角的休息图标。
 func (e *Engine) startBreak() {
 	// 手动"立即休息"会从 PhaseFocusing 直接进入 startBreak（跳过预提醒），
 	// 此时专注还没被 startPreBreak 记录，需要在此补记。
@@ -105,7 +105,7 @@ func (e *Engine) startBreak() {
 	e.setPhase(phase, dur)
 	log.Printf("blink/breakengine: 休息开始：阶段=%s 时长=%s（长休息=%v, 已完成短休息=%d）", phase, dur, long, e.breaksDone)
 	e.hideNotice()
-	e.showOverlays()
+	e.showBreakIcon()
 	e.emit()
 }
 

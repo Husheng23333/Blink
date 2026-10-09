@@ -9,9 +9,9 @@ const (
 	PhaseFocusing Phase = "focusing"
 	// PhasePreBreak：休息开始前的提醒窗口。
 	PhasePreBreak Phase = "prebreak"
-	// PhaseShortBreak：常规短休息遮罩正在显示。
+	// PhaseShortBreak：常规短休息图标正在显示。
 	PhaseShortBreak Phase = "shortbreak"
-	// PhaseLongBreak：偶尔的较长休息遮罩正在显示。
+	// PhaseLongBreak：偶尔的较长休息图标正在显示。
 	PhaseLongBreak Phase = "longbreak"
 	// PhaseIdle：用户不活动时间超过空闲阈值；专注计时器被保持，
 	// 活动恢复后重置。
@@ -23,7 +23,7 @@ const (
 	PhaseIdle Phase = "idle"
 )
 
-// IsBreak 报告该阶段是否是正在显示的休息遮罩（短休息或长休息）。
+// IsBreak 报告该阶段是否是正在显示的休息图标（短休息或长休息）。
 func (p Phase) IsBreak() bool {
 	return p == PhaseShortBreak || p == PhaseLongBreak
 }

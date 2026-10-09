@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import Settings from './views/Settings.vue'
-import BreakOverlay from './views/BreakOverlay.vue'
+import BreakIcon from './views/BreakIcon.vue'
 import PreBreakNotice from './views/PreBreakNotice.vue'
 
 // 每个窗口以固定 hash 加载 SPA，hash 选择对应视图。
@@ -14,7 +14,7 @@ onMounted(() => {
 })
 const current = computed(() => {
   switch (view.value) {
-    case 'break': return BreakOverlay
+    case 'break': return BreakIcon
     case 'notice': return PreBreakNotice
     default: return Settings
   }
